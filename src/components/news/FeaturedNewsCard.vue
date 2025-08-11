@@ -5,6 +5,7 @@ const { item } = defineProps<{ item: NewsItem }>()
 </script>
 
 <template>
+  <router-link :to="`/details/${item.id}`" class="block hover:shadow-lg transition-shadow">
   <article
     class="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 overflow-hidden grid md:grid-cols-2"
   >
@@ -39,4 +40,5 @@ const { item } = defineProps<{ item: NewsItem }>()
       </div>
     </div>
   </article>
+  </router-link>
 </template>

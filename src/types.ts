@@ -1,6 +1,8 @@
 export type VoteStatus = 'Fake' | 'Real'
 
 export interface CommentItem {
+  id: number
+  newsId: number
   user: string
   vote: 'fake' | 'real'
   comment: string
