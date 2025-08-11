@@ -1,13 +1,12 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import NavBar from '@/components/NavBar.vue'
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
-  <h1 class="text-3xl font-bold text-blue-600">Hello Tailwind 4!</h1>
-  <RouterView />
+  <NavBar />
+  <main class="mt-14">
+    <RouterView />
+  </main>
 </template>
 
 <style scoped></style>

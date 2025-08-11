@@ -1,29 +1,25 @@
+// stores/news.ts
 import { defineStore } from 'pinia'
-import type { NewsItem, NewsState } from '@/types'
 import { getAllNews } from '@/services/NewsService'
+import type { NewsItem } from '@/types'
+
+type State = { news: NewsItem[] | null; loading: boolean; error: string | null }
 
 export const useNewsStore = defineStore('news', {
-  state: (): NewsState => ({
-    news: null,
-    loading: false,
-    error: null,
-  }),
-
+  state: (): State => ({ news: null, loading: false, error: null }),
   actions: {
-    setNews(items: NewsItem[] | null): void {
-      this.news = items
-    },
-
-    async fetchNews(): Promise<void> {
+    async fetchNews() {
       this.loading = true
       this.error = null
       try {
         const data = await getAllNews()
-        this.setNews(data)
-      } catch (err) {
-        console.error(err)
-        this.error = 'Failed to load news.'
-        this.setNews(null)
+        this.news = [...data].sort((a, b) => +new Date(b.dateTime) - +new Date(a.dateTime))
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          this.error = e.message
+        } else {
+          this.error = 'Failed to load news'
+        }
       } finally {
         this.loading = false
       }
