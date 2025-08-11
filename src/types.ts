@@ -6,6 +6,8 @@ export interface CommentItem {
   user: string
   vote: 'fake' | 'real'
   comment: string
+   attachments?: string[]
+  createdAt?: string
 }
 
 export interface NewsItem {

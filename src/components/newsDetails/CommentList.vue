@@ -38,7 +38,6 @@ function loadMore() {
       Comments
       <span class="text-gray-500 font-large">({{ meta.total }})</span>
       </h2>
-
       <label class="text-sm flex items-center gap-2">
         <span class="text-gray-600">Show</span>
         <select class="border rounded-lg px-2 py-1 text-sm">

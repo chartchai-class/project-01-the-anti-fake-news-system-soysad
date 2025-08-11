@@ -58,7 +58,7 @@ const verdictClass = computed(() => {
       <div class="font-medium text-xl">{{ item.reporter }}</div>
       <span aria-hidden="true">•</span>
       <time :datetime="item.dateTime" class="text-xl">{{ item.dateTime }}</time>
-      <span aria-hidden="true">•</span>
+      <span aria-hidden="true"></span>
     </div>
 
     <!-- Hero image -->

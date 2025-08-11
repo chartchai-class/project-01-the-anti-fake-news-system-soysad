@@ -36,6 +36,13 @@ function goBack() { router.back() }
   <div v-else-if="error" class="p-6 text-red-600">{{ error }}</div>
   <div v-else class="p-6 text-gray-500">Article not found.</div>
 
+  <router-link
+      :to="{ name: 'votes', params: { id: currentNewsId } }"
+      class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+    >
+      Votes
+    </router-link>
+
   <div v-if="currentNewsId" class="max-w-5xl mx-auto px-4 py-2">
     <CommentsList
       :news-id="Number(currentNewsId)"
