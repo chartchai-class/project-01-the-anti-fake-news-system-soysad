@@ -5,7 +5,12 @@ import { useRoute } from 'vue-router'
 import { useNewsStore } from '@/stores/news'
 import { useCommentsStore } from '@/stores/comments'
 import type { CommentItem } from '@/types'
+import router from '@/router'
 
+const currentNews = computed(() => {
+  const id = Number(route.params.id)
+  return (newsStore.news ?? []).find((n: any) => Number(n.id) === id)
+})
 const route = useRoute()
 const newsStore = useNewsStore()
 const commentsStore = useCommentsStore()
@@ -26,7 +31,6 @@ const urlInput = ref('')
 
 onMounted(async () => {
   if (!newsStore.news) await newsStore.fetchNews?.()
-  commentsStore.hydrateLocal?.()
 
   // ถ้ายังไม่ได้เลือกข่าว ให้ auto เลือกข่าวแรก
   if (!form.value.newsId && Array.isArray(newsStore.news) && newsStore.news.length) {
@@ -98,24 +102,26 @@ function submit() {
 
   const keepId = form.value.newsId
   form.value = { newsId: keepId, user: '', vote: 'real', comment: '', attachments: [] }
+
+  router.push({ name: 'details', params: { id: keepId } }) 
+  
 }
 </script>
 
 <template>
   <section class="max-w-3xl mx-auto px-4 py-8">
-    <h1 class="text-2xl md:text-3xl font-bold mb-6">Add Vote & Comment</h1>
+    <h1 class="text-2xl md:text-3xl font-bold mb-6">Vote & Comment</h1>
 
     <div class="bg-white rounded-2xl shadow border border-gray-100 p-5 space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label class="block">
-          <span class="text-sm text-gray-600">Select news</span>
-          <select v-model.number="form.newsId" class="mt-1 w-full border rounded-lg px-3 py-2">
-            <option disabled :value="0">-- choose news --</option>
-            <option v-for="n in newsOptions" :key="n.id" :value="n.id">
-              #{{ n.id }} — {{ n.topic }}
-            </option>
-          </select>
-          <p v-if="!isValidNewsId" class="text-xs text-red-600 mt-1">Please choose a news item.</p>
+          <div>
+            <span class="text-sm text-gray-600 block mb-1">Voting for:</span>
+            <p v-if="currentNews" class="font-semibold text-lg text-gray-900">
+              {{ currentNews.topic }}
+            </p>
+            <p v-else class="text-red-500 text-sm">News not found.</p>
+            </div>  
         </label>
 
         <label class="block">

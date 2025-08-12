@@ -11,34 +11,19 @@ type PerNewsState = {
   loading: boolean
   error: string | null
 }
-
 type State = {
   byNewsId: Record<number, PerNewsState>
-
-  // ✅ เก็บคอมเมนต์ฝั่ง local (ไม่ผ่าน API)
+  // keep local comments only in memory (volatile)
   localByNewsId: Record<number, CommentItem[]>
 }
 
-const LOCAL_KEY = 'local_comments_v1'
-
-function loadLocal(): Record<number, CommentItem[]> {
-  try {
-    const raw = localStorage.getItem(LOCAL_KEY)
-    return raw ? JSON.parse(raw) : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveLocal(map: Record<number, CommentItem[]>) {
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(map))
-}
-
 export const useCommentsStore = defineStore('comments', {
-  state: (): State => ({ byNewsId: {}, localByNewsId: loadLocal() }),
+  state: (): State => ({
+    byNewsId: {},
+    localByNewsId: {}     // <-- start empty, no hydration
+  }),
 
   getters: {
-    // ✅ รวม local + remote (local ขึ้นก่อน)
     listByNewsId: (state) => (newsId: number) => {
       const local = state.localByNewsId[newsId] ?? []
       const remote = state.byNewsId[newsId]?.items ?? []
@@ -46,37 +31,24 @@ export const useCommentsStore = defineStore('comments', {
     },
     metaByNewsId: (state) => (newsId: number) =>
       state.byNewsId[newsId] ?? {
-        items: [],
-        page: 0,
-        pages: 0,
-        total: 0,
-        loading: false,
-        error: null
+        items: [], page: 0, pages: 0, total: 0, loading: false, error: null
       },
     hasMore: (state) => (newsId: number) => {
       const s = state.byNewsId[newsId]
-      if (!s) return false
-      return s.page < s.pages
+      return !!s && s.page < s.pages
     }
   },
 
   actions: {
-    // ===== API flow เดิม (คงไว้) =====
+    // ------- API flow (unchanged) -------
     async fetchFirstPage(newsId: number, limit = 20) {
       if (!this.byNewsId[newsId]) {
         this.byNewsId[newsId] = {
-          items: [],
-          page: 0,
-          pages: 0,
-          total: 0,
-          loading: false,
-          error: null
+          items: [], page: 0, pages: 0, total: 0, loading: false, error: null
         }
       }
       const slot = this.byNewsId[newsId]
-      slot.loading = true
-      slot.error = null
-
+      slot.loading = true; slot.error = null
       try {
         const data = await getCommentsByNewsId({ newsId, page: 1, limit })
         slot.items = data.items
@@ -93,18 +65,10 @@ export const useCommentsStore = defineStore('comments', {
     async fetchNextPage(newsId: number, limit = 20) {
       const slot = this.byNewsId[newsId]
       if (!slot) return this.fetchFirstPage(newsId, limit)
-      if (slot.loading) return
-      if (slot.page >= slot.pages) return
-
-      slot.loading = true
-      slot.error = null
-
+      if (slot.loading || slot.page >= slot.pages) return
+      slot.loading = true; slot.error = null
       try {
-        const data = await getCommentsByNewsId({
-          newsId,
-          page: slot.page + 1,
-          limit
-        })
+        const data = await getCommentsByNewsId({ newsId, page: slot.page + 1, limit })
         slot.items = [...slot.items, ...data.items]
         slot.page = data.page
         slot.pages = data.pages
@@ -116,46 +80,38 @@ export const useCommentsStore = defineStore('comments', {
       }
     },
 
-    // ===== Local-only flow (ใหม่) =====
-    hydrateLocal() {
-      // เผื่อเรียกตอนเริ่มแอป
-      this.localByNewsId = loadLocal()
-    },
+    // ------- Local-only (volatile) -------
     ensureLocalSlot(newsId: number) {
       if (!this.localByNewsId[newsId]) this.localByNewsId[newsId] = []
     },
-    // ✅ เพิ่มคอมเมนต์จากผู้ใช้ (เก็บแต่ local)
+
     addLocal(comment: Omit<CommentItem, 'id'>) {
       const newsId = Number(comment.newsId)
       this.ensureLocalSlot(newsId)
-
-      // สร้าง id ติดลบกันชนกับ id จาก API
       const current = this.localByNewsId[newsId]
       const minNeg = current.reduce((min, c) => Math.min(min, c.id), 0)
       const id = minNeg <= 0 ? minNeg - 1 : -1
-
       const payload: CommentItem = {
         id,
         ...comment,
-        // บันทึกเวลาไว้เรียงในอนาคตได้
         createdAt: new Date().toISOString()
       }
-      this.localByNewsId[newsId].unshift(payload) // ใส่บนสุด
-      saveLocal(this.localByNewsId)
+      this.localByNewsId[newsId].unshift(payload) // top of list
       return id
     },
+
     removeLocal(newsId: number, id: number) {
       this.ensureLocalSlot(newsId)
-      this.localByNewsId[newsId] = this.localByNewsId[newsId].filter(c => c.id !== id)
-      saveLocal(this.localByNewsId)
+      this.localByNewsId[newsId] =
+        this.localByNewsId[newsId].filter(c => c.id !== id)
     },
+
     clearLocal(newsId?: number) {
       if (typeof newsId === 'number') {
         this.localByNewsId[newsId] = []
       } else {
         this.localByNewsId = {}
       }
-      saveLocal(this.localByNewsId)
     }
   }
 })
