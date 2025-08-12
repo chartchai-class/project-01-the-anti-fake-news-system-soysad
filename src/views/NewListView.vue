@@ -12,13 +12,11 @@ const { news, loading, error } = storeToRefs(newsStore)
 const { fetchNews } = newsStore
 
 onMounted(fetchNews)
-
 </script>
 
 <template>
   <div class="bg-gray-50 min-h-screen">
     <div class="mx-auto max-w-6xl px-4 py-8">
-
       <NewsHeader :loading="loading" @refresh="fetchNews" />
       <p v-if="error" class="mt-4 text-red-600">⚠ {{ error }}</p>
 

@@ -34,18 +34,25 @@ function loadMore() {
 <template>
   <section class="mt-10">
     <div class="flex items-center justify-between gap-3 mb-4">
-      <h2 class="text-2xl font-semibold mb-4">
-      Comments
-      <span class="text-gray-500 font-large">({{ meta.total }})</span>
+
+      <div class="flex items-center gap-3">
+      <h2 class="text-2xl font-semibold">
+        Comments
+        <span class="text-gray-500 font-large">({{ meta.total }})</span>
       </h2>
-      <label class="text-sm flex items-center gap-2">
-        <span class="text-gray-600">Show</span>
-        <select class="border rounded-lg px-2 py-1 text-sm">
-          <option value="top">Highest Rated</option>
-          <option value="new">Newest</option>
-          <option value="old">Oldest</option>
-        </select>
-      </label>
+      <slot name="actions"></slot>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <label class="text-sm flex items-center gap-2">
+          <span class="text-gray-600">Show</span>
+          <select class="border rounded-lg px-2 py-1 text-sm">
+            <option value="top">Highest Rated</option>
+            <option value="new">Newest</option>
+            <option value="old">Oldest</option>
+          </select>
+        </label>
+      </div>
     </div>
     
     <div v-if="meta.loading" class="text-gray-500 mb-3">Loading comments…</div>
