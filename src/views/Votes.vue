@@ -207,7 +207,10 @@ function submit() {
       <div class="flex justify-end">
         <button
           @click="submit"
-          class="px-4 py-2 rounded-xl bg-black text-white disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="!canSubmit"
+          aria-disabled="true"
+          class="px-4 py-2 rounded-xl bg-black text-white disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed enabled:hover:bg-zinc-900 enabled:shadow-sm transition"
+          :title="!canSubmit ? 'กรอกชื่อและคอมเมนต์ก่อน' : 'บันทึกลง Local'"
         >
           Save to Local
         </button>

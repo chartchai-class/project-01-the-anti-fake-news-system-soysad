@@ -29,3 +29,10 @@ export interface NewsState {
   loading: boolean
   error: string | null
 }
+
+export interface NewsPage {
+  items: NewsItem[]
+  total: number
+  page: number
+  perPage: number
+}

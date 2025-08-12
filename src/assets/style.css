@@ -1,1 +1,40 @@
 @import 'tailwindcss';
+
+/* ------------------------------
+   THEME TOKENS (Tailwind v4)
+------------------------------ */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', Inter, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans Thai', 'Apple Color Emoji', 'Noto Color Emoji';
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6; /* default */
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+
+  --color-accent-500: #10b981;
+
+  --radius-card: 1.25rem; /* ≈ rounded-2xl */
+  --radius-control: 0.75rem;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
+
+  --ease-smooth: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ------------------------------
+   BASE (light only)
+------------------------------ */
+:root {
+  color-scheme: light;
+}
+html,
+body {
+  @apply bg-gray-100 text-zinc-900 antialiased
+         selection:bg-brand-100 selection:text-brand-700;
+}

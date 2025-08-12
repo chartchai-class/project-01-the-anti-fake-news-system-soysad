@@ -3,9 +3,14 @@ import type { NewsItem } from '@/types'
 import { computed } from 'vue'
 import { fakePercent, majorityLabel } from '@/utils/vote'
 const { item } = defineProps<{ item: NewsItem }>()
+import { useCommentsStore } from '@/stores/comments'
+const commentsStore = useCommentsStore()
+const delta = computed(
+  () => commentsStore.localVoteDeltaByNewsId?.(Number((item as any).id)) ?? { real: 0, fake: 0 },
+)
 
-const fakeVotes = computed(() => Number((item as any).fakeVotes ?? 0))
-const realVotes = computed(() => Number((item as any).realVotes ?? 0))
+const fakeVotes = computed(() => Number((item as any).fakeVotes ?? 0) + delta.value.fake)
+const realVotes = computed(() => Number((item as any).realVotes ?? 0) + delta.value.real)
 
 const fakePct = computed(() => fakePercent(fakeVotes.value, realVotes.value))
 const realPct = computed(() => 100 - fakePct.value)
