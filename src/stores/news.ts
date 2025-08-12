@@ -3,13 +3,9 @@ import { getNewsPage, getAllNewsSorted } from '@/services/NewsService'
 import type { NewsItem } from '@/types'
 
 type State = {
-  // server mode
   news: NewsItem[]
   total: number
-
-  // client mode cache
   newsAll: NewsItem[] | null
-
   loading: boolean
   error: string | null
 }
@@ -36,14 +32,12 @@ export const useNewsStore = defineStore('news', {
         this.loading = false
       }
     },
-
     async ensureAllNews() {
       if (this.newsAll && this.newsAll.length) return
       this.loading = true
       this.error = null
       try {
-        const all = await getAllNewsSorted()
-        this.newsAll = all
+        this.newsAll = await getAllNewsSorted()
       } catch (e: unknown) {
         this.error = e instanceof Error ? e.message : 'Failed to load all news'
       } finally {

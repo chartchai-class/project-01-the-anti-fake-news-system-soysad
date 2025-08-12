@@ -16,8 +16,6 @@ export async function getNewsPage(page = 1, perPage = 8): Promise<NewsPage> {
 }
 
 export async function getAllNewsSorted(): Promise<NewsItem[]> {
-  const res = await api.get<NewsItem[]>('/news', {
-    params: { _sort: 'dateTime', _order: 'desc' },
-  })
+  const res = await api.get<NewsItem[]>('/news', { params: { _sort: 'dateTime', _order: 'desc' } })
   return res.data
 }

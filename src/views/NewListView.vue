@@ -17,7 +17,7 @@ const route = useRoute()
 const PER_PAGE_OPTIONS = [3, 5, 8, 10, 12, 16, 20] as const
 
 const newsStore = useNewsStore()
-const { news, total, loading, error } = storeToRefs(newsStore)
+const { news, newsAll, total, loading, error } = storeToRefs(newsStore)
 
 const page = ref(props.page || 1)
 const perPage = ref(
@@ -25,27 +25,28 @@ const perPage = ref(
 )
 const filter = ref<Filter>(props.filter ?? 'all')
 
-const pageCount = computed(() => Math.max(1, Math.ceil((total.value ?? 0) / perPage.value)))
-const startIndex = computed(() => (page.value - 1) * perPage.value + (total.value ? 1 : 0))
-const endIndex = computed(() => Math.min(total.value, page.value * perPage.value))
-
-function load() {
-  newsStore.fetchNews(page.value, perPage.value)
-}
+const isClientMode = computed(() => filter.value !== 'all')
 
 watch(
   () => [route.query.page, route.query.perPage, route.query.filter],
-  ([qp, qps, qf]) => {
+  async ([qp, qps, qf]) => {
     const np = parseInt((qp as string) ?? '1', 10)
     const ns = parseInt((qps as string) ?? String(perPage.value), 10)
     const nf = (['all', 'fake', 'real'] as const).includes(qf as Filter) ? (qf as Filter) : 'all'
+
     const nextPage = Number.isFinite(np) && np > 0 ? np : 1
     const nextPerPage = (PER_PAGE_OPTIONS as readonly number[]).includes(ns) ? ns : perPage.value
-    const changed = nextPage !== page.value || nextPerPage !== perPage.value || nf !== filter.value
-    page.value = nf !== filter.value ? 1 : nextPage
+
+    const filterChanged = nf !== filter.value
+    page.value = filterChanged ? 1 : nextPage
     perPage.value = nextPerPage
     filter.value = nf
-    if (changed) load()
+
+    if (filter.value === 'all') {
+      await newsStore.fetchNews(page.value, perPage.value)
+    } else {
+      await newsStore.ensureAllNews()
+    }
   },
   { immediate: true },
 )
@@ -57,7 +58,7 @@ function prev() {
   setQuery(Math.max(1, page.value - 1), perPage.value, filter.value)
 }
 function next() {
-  setQuery(Math.min(pageCount.value, page.value + 1), perPage.value, filter.value)
+  setQuery(page.value + 1, perPage.value, filter.value)
 }
 function goTo(p: number) {
   setQuery(p, perPage.value, filter.value)
@@ -70,13 +71,38 @@ function setFilter(f: Filter) {
   setQuery(1, perPage.value, f)
 }
 
-const filteredThisPage = computed(() => {
-  if (filter.value === 'all') return news.value
-  return (news.value || []).filter((n) => {
+const filteredAll = computed(() => {
+  if (filter.value === 'all') return []
+  const data = newsAll.value ?? []
+  return data.filter((n) => {
     const s = majorityLabel(n.fakeVotes, n.realVotes).toLowerCase()
     return (filter.value === 'fake' && s === 'fake') || (filter.value === 'real' && s === 'real')
   })
 })
+
+const clientTotal = computed(() => filteredAll.value.length)
+const clientPageCount = computed(() => Math.max(1, Math.ceil(clientTotal.value / perPage.value)))
+const clientStart = computed(() => (page.value - 1) * perPage.value)
+const clientEnd = computed(() => Math.min(clientTotal.value, page.value * perPage.value))
+const clientSlice = computed(() => filteredAll.value.slice(clientStart.value, clientEnd.value))
+
+const pageCount = computed(() =>
+  isClientMode.value
+    ? clientPageCount.value
+    : Math.max(1, Math.ceil((total.value ?? 0) / perPage.value)),
+)
+const startIndex = computed(() =>
+  isClientMode.value
+    ? clientTotal.value
+      ? clientStart.value + 1
+      : 0
+    : (page.value - 1) * perPage.value + (total.value ? 1 : 0),
+)
+const endIndex = computed(() =>
+  isClientMode.value ? clientEnd.value : Math.min(total.value, page.value * perPage.value),
+)
+const totalForToolbar = computed(() => (isClientMode.value ? clientTotal.value : total.value))
+const itemsForGrid = computed(() => (isClientMode.value ? clientSlice.value : news.value))
 
 type PageItem = number | '…'
 const pageItems = computed<PageItem[]>(() => {
@@ -99,7 +125,7 @@ const isActive = (f: Filter) => filter.value === f
 <template>
   <div class="min-h-screen">
     <div class="mx-auto max-w-6xl px-4 py-8">
-      <NewsHeader :loading="loading" @refresh="load" />
+      <NewsHeader :loading="loading" @refresh="() => setQuery(page, perPage, filter)" />
 
       <p v-if="error" class="mt-4 text-red-600">⚠ {{ error }}</p>
 
@@ -134,9 +160,10 @@ const isActive = (f: Filter) => filter.value === f
           </div>
 
           <span class="text-zinc-600 ml-3">
-            Showing <span class="font-medium text-zinc-900">{{ total ? startIndex : 0 }}</span
+            Showing
+            <span class="font-medium text-zinc-900">{{ totalForToolbar ? startIndex : 0 }}</span
             >–<span class="font-medium text-zinc-900">{{ endIndex }}</span> of
-            <span class="font-medium text-zinc-900">{{ total }}</span>
+            <span class="font-medium text-zinc-900">{{ totalForToolbar }}</span>
           </span>
         </div>
 
@@ -157,14 +184,17 @@ const isActive = (f: Filter) => filter.value === f
         <SkeletonCard v-for="n in 6" :key="n" />
       </div>
 
-      <EmptyState v-else-if="!filteredThisPage || filteredThisPage.length === 0" class="mt-6" />
+      <EmptyState v-else-if="!itemsForGrid || itemsForGrid.length === 0" class="mt-6" />
 
-      <NewsGrid v-else class="mt-6" :items="filteredThisPage" />
+      <NewsGrid v-else class="mt-6" :items="itemsForGrid" />
 
-      <nav v-if="!loading && total > 0" class="mt-6 flex items-center justify-center gap-2">
+      <nav
+        v-if="!loading && (totalForToolbar || 0) > 0"
+        class="mt-6 flex items-center justify-center gap-2"
+      >
         <button
           class="rounded-lg px-3 py-1.5 text-sm ring-1 ring-zinc-200 hover:bg-zinc-50 disabled:opacity-40"
-          :disabled="page === 1"
+          :disabled="page <= 1"
           @click="prev"
         >
           Prev
@@ -172,8 +202,8 @@ const isActive = (f: Filter) => filter.value === f
 
         <ul class="flex items-center gap-1">
           <li
-            v-for="it in pageItems"
-            :key="`p-${typeof it === 'number' ? it : 'dots-' + Math.random()}`"
+            v-for="(it, idx) in pageItems"
+            :key="`p-${typeof it === 'number' ? it : 'dots-' + idx}`"
           >
             <button
               v-if="typeof it === 'number'"
@@ -189,7 +219,7 @@ const isActive = (f: Filter) => filter.value === f
 
         <button
           class="rounded-lg px-3 py-1.5 text-sm ring-1 ring-zinc-200 hover:bg-zinc-50 disabled:opacity-40"
-          :disabled="page === pageCount"
+          :disabled="page >= pageCount"
           @click="next"
         >
           Next
