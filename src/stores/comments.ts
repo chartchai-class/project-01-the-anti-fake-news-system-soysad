@@ -81,16 +81,18 @@ export const useCommentsStore = defineStore('comments', {
         const base: PerNewsState = slot ?? {
           items: [],
           page: 0,
-          pages: 0,
+          pages: 0, // ← ใช้ของ server อย่างเดียว
           total: 0,
           limit: 20,
           loading: false,
           error: null,
         }
-        const localCount = (this as any).localCountByNewsId(newsId) as number
-        const total = base.total + localCount
+
+        const localCount = (this as any).localCountByNewsId?.(newsId) ?? 0
+        const total = base.total + localCount // ✅ total รวม local
         const limit = base.limit || 20
-        const pages = Math.max(1, Math.ceil(total / limit))
+        const pages = base.pages // ✅ pages = ของ server เท่านั้น
+
         return { ...base, total, pages, limit }
       }
     },

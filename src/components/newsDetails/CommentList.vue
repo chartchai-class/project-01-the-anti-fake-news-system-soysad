@@ -73,9 +73,10 @@ watch(selectedSize, (n) => {
 // (ถ้ามี visibleComments ที่ slice ไม่ให้เกิน limit ให้คงไว้)
 const visibleComments = computed(() => {
   const limit = selectedSize.value
-  // หน้า 1: local + remote (ถ้าใช้ combined) แล้วตัดไม่เกิน limit
-  if (page.value <= 1) return combined.value.slice(0, limit)
-  // หน้าอื่น ๆ ก็กันไว้ด้วย
+  if (page.value <= 1) {
+    // combined = [local..., remote_page1...]
+    return combined.value.slice(0, limit) // ✅ ไม่เกิน limit
+  }
   return combined.value.slice(0, limit)
 })
 
