@@ -4,13 +4,13 @@ import { RouterLink } from 'vue-router'
 
 <template>
   <header
-    class="fixed inset-x-0 top-0 z-50 h-14 bg-black backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-black/80 border-b border-white/10"
+    class="fixed inset-x-0 top-0 z-50 h-14 bg-white/70 backdrop-blur-xl border-b border-zinc-200/70 text-zinc-700"
     role="navigation"
   >
-    <nav class="h-full mx-auto max-w-6xl px-4 flex items-center justify-between">
-      <RouterLink to="/" class="flex items-center gap-2 text-white/90 hover:text-white">
+    <nav class="h-full mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-between">
+      <RouterLink to="/" class="flex items-center gap-2 hover:text-zinc-900">
         <span
-          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/60 ring-1 ring-zinc-200"
           aria-hidden="true"
         >
           <svg
@@ -24,12 +24,12 @@ import { RouterLink } from 'vue-router'
             <path d="M8 8h8M8 12h8M8 16h4" />
           </svg>
         </span>
-        <span class="font-semibold tracking-tight">Soysad Fake or Real </span>
+        <span class="font-semibold tracking-tight">Soysad Fake or Real</span>
       </RouterLink>
 
       <RouterLink
         to="/"
-        class="text-sm text-white/90 hover:text-white px-3 py-1.5 rounded-lg ring-1 ring-white/10 hover:bg-white/5"
+        class="text-sm px-3 py-1.5 rounded-lg ring-1 ring-zinc-200 bg-white/50 hover:bg-white/70 hover:text-zinc-900"
       >
         Home
       </RouterLink>
