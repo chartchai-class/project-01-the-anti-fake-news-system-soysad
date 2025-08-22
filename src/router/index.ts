@@ -3,6 +3,7 @@ import NewListView from '@/views/NewListView.vue'
 import NewsDetailFrame from '@/views/NewsDetail/NewsDetailFrame.vue'
 import DetailPage from '@/views/NewsDetail/DetailPage.vue'
 import VotePage from '@/views/NewsDetail/VotePage.vue'
+import * as NProgress from 'nprogress'
 
 export const PER_PAGE_OPTIONS = [4, 7, 14, 10, 21] as const
 export type PerPage = (typeof PER_PAGE_OPTIONS)[number]
@@ -53,4 +54,17 @@ const router = createRouter({
     return { top: 0 }
   },
 })
+
+NProgress.configure({
+  showSpinner: false,
+  trickleSpeed: 150,
+  minimum: 0.08,
+})
+router.beforeEach((to, from, next) => {
+  NProgress.start()
+  next()
+})
+router.afterEach(() => NProgress.done())
+router.onError(() => NProgress.done())
+
 export default router

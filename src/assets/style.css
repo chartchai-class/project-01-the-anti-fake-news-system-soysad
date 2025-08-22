@@ -25,6 +25,9 @@
   --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
 
   --ease-smooth: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --nprogress-color: #10b981;
+  --nprogress-height: 4px;
+  --nprogress-top: 0px;
 }
 
 /* ------------------------------
@@ -81,4 +84,36 @@ body {
   stroke-dasharray: 60;
   stroke-dashoffset: 60;
   animation: draw 0.6s ease-out forwards;
+}
+
+#nprogress .bar {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  top: var(--nprogress-top) !important;
+  height: var(--nprogress-height) !important;
+  background: var(--nprogress-color) !important;
+  z-index: 2147483647 !important; /* อยู่บนสุดจริง ๆ */
+  pointer-events: none;
+}
+
+/* แสงที่หัวหลอด (ชัดขึ้น) */
+#nprogress .peg {
+  box-shadow:
+    0 0 10px var(--nprogress-color),
+    0 0 5px var(--nprogress-color) !important;
+}
+
+/* ปิดสปินเนอร์ */
+#nprogress .spinner {
+  display: none !important;
+}
+
+/* (ทางเลือก) ให้หลอดดูนูนขึ้นเล็กน้อย */
+#nprogress .bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  pointer-events: none;
 }
