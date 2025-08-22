@@ -1,0 +1,119 @@
+@import 'tailwindcss';
+
+/* ------------------------------
+   THEME TOKENS (Tailwind v4)
+------------------------------ */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', Inter, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans Thai', 'Apple Color Emoji', 'Noto Color Emoji';
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6; /* default */
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+
+  --color-accent-500: #10b981;
+
+  --radius-card: 1.25rem; /* ≈ rounded-2xl */
+  --radius-control: 0.75rem;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
+
+  --ease-smooth: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --nprogress-color: #10b981;
+  --nprogress-height: 4px;
+  --nprogress-top: 0px;
+}
+
+/* ------------------------------
+   BASE (light only)
+------------------------------ */
+:root {
+  color-scheme: light;
+}
+html,
+body {
+  @apply bg-gray-100 text-zinc-900 antialiased
+         selection:bg-brand-100 selection:text-brand-700;
+}
+
+@keyframes pop-in {
+  0% {
+    transform: translateY(8px) scale(0.96);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(0) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+.pop-in {
+  animation: pop-in 0.38s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+}
+
+@keyframes ring-pop {
+  0% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.ring-pop {
+  animation: ring-pop 0.5s ease-out both;
+}
+
+/* เส้น “ติ้ก” วาดแบบ stroke animation */
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.tick {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw 0.6s ease-out forwards;
+}
+
+#nprogress .bar {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  top: var(--nprogress-top) !important;
+  height: var(--nprogress-height) !important;
+  background: var(--nprogress-color) !important;
+  z-index: 2147483647 !important; /* อยู่บนสุดจริง ๆ */
+  pointer-events: none;
+}
+
+/* แสงที่หัวหลอด (ชัดขึ้น) */
+#nprogress .peg {
+  box-shadow:
+    0 0 10px var(--nprogress-color),
+    0 0 5px var(--nprogress-color) !important;
+}
+
+/* ปิดสปินเนอร์ */
+#nprogress .spinner {
+  display: none !important;
+}
+
+/* (ทางเลือก) ให้หลอดดูนูนขึ้นเล็กน้อย */
+#nprogress .bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
