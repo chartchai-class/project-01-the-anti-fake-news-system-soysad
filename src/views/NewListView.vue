@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useNewsStore } from '@/stores/news'
 import { storeToRefs } from 'pinia'
 import NewsHeader from '@/components/news/NewsHeader.vue'
-import NewsGrid from '@/components/news/NewsGrid.vue'
+import NewsGrid from '@/components/news/NewsLayout.vue'
 import SkeletonCard from '@/components/news/SkeletonCard.vue'
 import EmptyState from '@/components/news/EmptyState.vue'
 import { majorityLabel } from '@/utils/vote'
@@ -14,14 +14,14 @@ const props = defineProps<{ page: number; perPage: number; filter: Filter }>()
 
 const router = useRouter()
 const route = useRoute()
-const PER_PAGE_OPTIONS = [3, 5, 8, 10, 12, 16, 20] as const
+const PER_PAGE_OPTIONS = [4, 7, 14, 21] as const
 
 const newsStore = useNewsStore()
 const { news, newsAll, total, loading, error } = storeToRefs(newsStore)
 
 const page = ref(props.page || 1)
 const perPage = ref(
-  (PER_PAGE_OPTIONS as readonly number[]).includes(props.perPage) ? props.perPage : 5,
+  (PER_PAGE_OPTIONS as readonly number[]).includes(props.perPage) ? props.perPage : 7,
 )
 const filter = ref<Filter>(props.filter ?? 'all')
 
@@ -86,6 +86,8 @@ const clientStart = computed(() => (page.value - 1) * perPage.value)
 const clientEnd = computed(() => Math.min(clientTotal.value, page.value * perPage.value))
 const clientSlice = computed(() => filteredAll.value.slice(clientStart.value, clientEnd.value))
 
+const isServerMode = computed(() => !isClientMode.value)
+
 const pageCount = computed(() =>
   isClientMode.value
     ? clientPageCount.value
@@ -103,6 +105,20 @@ const endIndex = computed(() =>
 )
 const totalForToolbar = computed(() => (isClientMode.value ? clientTotal.value : total.value))
 const itemsForGrid = computed(() => (isClientMode.value ? clientSlice.value : news.value))
+
+const pageStats = computed(() => {
+  const items = itemsForGrid.value ?? []
+  let real = 0,
+    fake = 0,
+    unclear = 0
+  for (const n of items) {
+    const s = majorityLabel(n.fakeVotes, n.realVotes)
+    if (s === 'Real') real++
+    else if (s === 'Fake') fake++
+    else unclear++
+  }
+  return { total: items.length, real, fake, unclear }
+})
 
 type PageItem = number | '…'
 const pageItems = computed<PageItem[]>(() => {
@@ -124,59 +140,130 @@ const isActive = (f: Filter) => filter.value === f
 
 <template>
   <div class="min-h-screen">
-    <div class="mx-auto max-w-6xl px-4 py-8">
+    <div class="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-8">
       <NewsHeader :loading="loading" @refresh="() => setQuery(page, perPage, filter)" />
+
+      <div v-if="!error" class="mt-4">
+        <div class="py-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-4">
+            <div
+              class="inline-flex overflow-hidden rounded-2xl ring-1 ring-zinc-200 bg-white shadow-sm"
+            >
+              <button
+                class="h-11 px-6 flex items-center gap-2 text-sm font-medium transition-colors"
+                :class="
+                  isActive('all') ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-100'
+                "
+                @click="setFilter('all')"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span>All</span>
+              </button>
+              <button
+                class="h-11 px-6 flex items-center gap-2 text-sm font-medium transition-colors"
+                :class="
+                  isActive('fake') ? 'bg-amber-600 text-white' : 'text-zinc-700 hover:bg-amber-50'
+                "
+                @click="setFilter('fake')"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M9 9l6 6M15 9l-6 6" />
+                </svg>
+                <span>Fake</span>
+              </button>
+              <button
+                class="h-11 px-6 flex items-center gap-2 text-sm font-medium transition-colors"
+                :class="
+                  isActive('real')
+                    ? 'bg-emerald-600 text-white'
+                    : 'text-zinc-700 hover:bg-emerald-50'
+                "
+                @click="setFilter('real')"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M8 12.5l2.5 2.5L16.5 9" />
+                </svg>
+                <span>Real</span>
+              </button>
+            </div>
+
+            <span class="text-zinc-500 text-sm">
+              Showing
+              <span class="font-medium text-zinc-900">{{ totalForToolbar ? startIndex : 0 }}</span>
+              –
+              <span class="font-medium text-zinc-900">{{ endIndex }}</span>
+              of
+              <span class="font-medium text-zinc-900">{{ totalForToolbar }}</span>
+              <span v-if="isServerMode" class="text-zinc-400">(server)</span>
+            </span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="text-zinc-700 font-medium text-sm">Per page</label>
+            <div class="relative">
+              <select
+                :value="perPage"
+                @change="onChangePerPage(parseInt(($event.target as HTMLSelectElement).value, 10))"
+                class="appearance-none h-11 pl-4 pr-9 rounded-xl border border-zinc-300 bg-white text-sm shadow-sm hover:border-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-300 transition outline-none"
+              >
+                <option v-for="n in PER_PAGE_OPTIONS" :key="n" :value="n">{{ n }}</option>
+              </select>
+              <svg
+                class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <p v-if="error" class="mt-4 text-red-600">⚠ {{ error }}</p>
 
-      <div v-if="!error" class="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
-        <div class="flex items-center gap-2">
-          <div class="inline-flex rounded-xl ring-1 ring-zinc-200 p-0.5 bg-white">
-            <button
-              class="px-3 py-1 rounded-lg"
-              :class="isActive('all') ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-50'"
-              @click="setFilter('all')"
-            >
-              All
-            </button>
-            <button
-              class="px-3 py-1 rounded-lg"
-              :class="
-                isActive('fake') ? 'bg-amber-600 text-white' : 'text-zinc-700 hover:bg-zinc-50'
-              "
-              @click="setFilter('fake')"
-            >
-              Fake
-            </button>
-            <button
-              class="px-3 py-1 rounded-lg"
-              :class="
-                isActive('real') ? 'bg-emerald-600 text-white' : 'text-zinc-700 hover:bg-zinc-50'
-              "
-              @click="setFilter('real')"
-            >
-              Real
-            </button>
-          </div>
-
-          <span class="text-zinc-600 ml-3">
-            Showing
-            <span class="font-medium text-zinc-900">{{ totalForToolbar ? startIndex : 0 }}</span
-            >–<span class="font-medium text-zinc-900">{{ endIndex }}</span> of
-            <span class="font-medium text-zinc-900">{{ totalForToolbar }}</span>
-          </span>
-        </div>
-
-        <label class="flex items-center gap-2">
-          <span class="text-zinc-600">Per page</span>
-          <select
-            :value="perPage"
-            @change="onChangePerPage(parseInt(($event.target as HTMLSelectElement).value, 10))"
-            class="rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm outline-none hover:bg-zinc-50"
-          >
-            <option v-for="n in PER_PAGE_OPTIONS" :key="n" :value="n">{{ n }}</option>
-          </select>
-        </label>
+      <div v-if="!loading && !error" class="mt-4">
+        <StatsBar
+          :total="pageStats.total"
+          :real="pageStats.real"
+          :fake="pageStats.fake"
+          :unclear="pageStats.unclear"
+        />
       </div>
 
       <div v-if="loading" class="grid md:grid-cols-2 gap-6 mt-6">

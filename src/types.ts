@@ -36,3 +36,17 @@ export interface NewsPage {
   page: number
   perPage: number
 }
+
+export interface CommentQuery {
+  newsId: number
+  page?: number
+  limit?: number
+}
+
+export interface CommentPage {
+  items: CommentItem[]
+  total: number
+  page: number
+  limit: number
+  pages: number
+}

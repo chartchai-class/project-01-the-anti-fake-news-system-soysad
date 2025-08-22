@@ -38,69 +38,34 @@ const fakeBarClass = computed(() => (winner.value === 'fake' ? 'bg-amber-500' : 
 </script>
 
 <template>
-  <router-link :to="`/details/${props.item.id}`" class="block hover:shadow-lg transition-shadow">
+  <router-link :to="`/details/${props.item.id}`" class="block h-full">
     <article
-      class="rounded-2xl bg-white ring-1 ring-black/5 shadow-sm overflow-hidden grid md:grid-cols-2 transition hover:-translate-y-0.5 hover:shadow-md"
+      class="group isolate relative rounded-2xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden md:grid md:grid-cols-12 md:items-stretch hover:-translate-y-0.5 hover:shadow-md transition h-full md:h-[220px] lg:h-[450px]"
     >
-      <div
-        class="relative bg-zinc-100 aspect-[21/9] md:aspect-auto md:h-full"
-        :class="props.reverse ? 'md:order-2' : ''"
+      <!-- Media -->
+      <figure
+        class="relative col-span-12 md:col-span-7 order-1 md:order-[var(--m-order,1)] h-48 sm:h-56 md:h-full bg-zinc-100 overflow-hidden"
+        :style="props.reverse ? '--m-order:2' : ''"
       >
         <img
           v-if="props.item.imageUrl"
           :src="props.item.imageUrl"
-          alt=""
-          class="w-full h-full object-cover"
+          :alt="props.item.topic"
+          class="block w-full h-full object-cover"
         />
         <span
-          class="absolute top-2 left-2 z-10 inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[11px] font-medium ring-1 shadow select-none"
+          class="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ring-1 shadow-lg select-none"
           :class="badgeTone"
         >
-          <svg
-            v-if="status === 'Real'"
-            viewBox="0 0 24 24"
-            class="h-3.5 w-3.5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M8 12.5l2.5 2.5L16.5 9" />
-          </svg>
-          <svg
-            v-else-if="status === 'Fake'"
-            viewBox="0 0 24 24"
-            class="h-3.5 w-3.5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M9 9l6 6M15 9l-6 6" />
-          </svg>
-          <svg
-            v-else
-            viewBox="0 0 24 24"
-            class="h-3.5 w-3.5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M8 12h8" />
-          </svg>
-          <span class="tracking-tight">{{ status }}</span>
+          {{ status }}
         </span>
-      </div>
+      </figure>
 
       <!-- Content -->
-      <div class="p-4 md:p-5 flex flex-col min-h-0" :class="props.reverse ? 'md:order-1' : ''">
+      <div
+        class="relative z-[1] col-span-12 md:col-span-5 order-2 md:order-[var(--c-order,2)] p-4 md:p-5 flex flex-col min-h-0 md:h-full bg-white"
+        :style="props.reverse ? '--c-order:1' : ''"
+      >
         <p class="text-[11px] text-zinc-500 line-clamp-1">
           {{ props.item.reporter }} · {{ new Date(props.item.dateTime).toLocaleDateString() }}
         </p>
@@ -116,45 +81,35 @@ const fakeBarClass = computed(() => (winner.value === 'fake' ? 'bg-amber-500' : 
         <div class="mt-auto pt-3 border-t border-zinc-100">
           <div class="flex items-center justify-between text-[11px]">
             <span
-              class="inline-flex items-center rounded-md px-2 py-0.5 ring-1 transition-colors"
+              class="inline-flex items-center rounded-md px-2 py-0.5 ring-1"
               :class="realLabelClass"
               >Real</span
             >
             <span
-              class="inline-flex items-center rounded-md px-2 py-0.5 ring-1 transition-colors"
+              class="inline-flex items-center rounded-md px-2 py-0.5 ring-1"
               :class="fakeLabelClass"
               >Fake</span
             >
           </div>
 
           <div
-            class="mt-2 h-1.5 rounded-full overflow-hidden ring-1 ring-black/5 grid"
-            :style="{ gridTemplateColumns: `${realPct}% ${fakePct}%` }"
+            class="relative z-[1] mt-3 h-2.5 md:h-3 rounded-full bg-zinc-200 shadow-inner ring-1 ring-black/5 overflow-hidden flex"
+            role="progressbar"
+            :aria-valuenow="realPct"
+            aria-valuemin="0"
+            aria-valuemax="100"
             aria-label="Real/Fake ratio"
           >
             <div
-              class="relative group cursor-help transition-colors"
+              class="h-full transition-all duration-300 ease-out"
               :class="realBarClass"
-              tabindex="0"
-            >
-              <div
-                class="pointer-events-none absolute -top-7 left-0 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition bg-zinc-900 text-white text-[11px] px-2 py-1 rounded-md shadow"
-              >
-                Real {{ realPct }}% ({{ props.item.realVotes }} / {{ total }})
-              </div>
-            </div>
-
+              :style="{ width: realPct + '%' }"
+            />
             <div
-              class="relative group cursor-help transition-colors"
+              class="h-full transition-all duration-300 ease-out"
               :class="fakeBarClass"
-              tabindex="0"
-            >
-              <div
-                class="pointer-events-none absolute -top-7 right-0 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition bg-zinc-900 text-white text-[11px] px-2 py-1 rounded-md shadow"
-              >
-                Fake {{ fakePct }}% ({{ props.item.fakeVotes }} / {{ total }})
-              </div>
-            </div>
+              :style="{ width: fakePct + '%' }"
+            />
           </div>
         </div>
       </div>

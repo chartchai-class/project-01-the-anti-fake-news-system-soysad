@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NewListView from '@/views/NewListView.vue'
-import NewsDetailLayout from '@/views/NewDetail.vue'
-import ArticleOverview from '@/components/newsDetails/ArticleOverview.vue'
-import VoteAndComment from '@/components/newsDetails/VoteAndComment.vue'
+import NewsDetailFrame from '@/views/NewsDetail/NewsDetailFrame.vue'
+import DetailPage from '@/views/NewsDetail/DetailPage.vue'
+import VotePage from '@/views/NewsDetail/VotePage.vue'
 
-export const PER_PAGE_OPTIONS = [3, 5, 8, 10, 12, 16, 20] as const
+export const PER_PAGE_OPTIONS = [4, 7, 14, 10, 21] as const
 export type PerPage = (typeof PER_PAGE_OPTIONS)[number]
-export const DEFAULT_PER_PAGE: PerPage = 5
+export const DEFAULT_PER_PAGE: PerPage = 7
 type Filter = 'all' | 'fake' | 'real'
 const normFilter = (v: unknown): Filter =>
   ['fake', 'real'].includes(String(v)) ? (v as Filter) : 'all'
@@ -31,11 +31,19 @@ const router = createRouter({
     },
     {
       path: '/details/:id',
-      component: NewsDetailLayout,
-      props: true,
+      component: () => NewsDetailFrame,
       children: [
-        { path: '', name: 'details', component: ArticleOverview, props: true },
-        { path: 'vote', name: 'details-vote', component: VoteAndComment, props: true },
+        { path: '', redirect: { name: 'details-detail' } },
+        {
+          path: 'detail',
+          name: 'details-detail',
+          component: () => DetailPage,
+        },
+        {
+          path: 'vote',
+          name: 'details-vote',
+          component: () => VotePage,
+        },
       ],
     },
   ],

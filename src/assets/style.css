@@ -38,3 +38,47 @@ body {
   @apply bg-gray-100 text-zinc-900 antialiased
          selection:bg-brand-100 selection:text-brand-700;
 }
+
+@keyframes pop-in {
+  0% {
+    transform: translateY(8px) scale(0.96);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(0) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+.pop-in {
+  animation: pop-in 0.38s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+}
+
+@keyframes ring-pop {
+  0% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.ring-pop {
+  animation: ring-pop 0.5s ease-out both;
+}
+
+/* เส้น “ติ้ก” วาดแบบ stroke animation */
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.tick {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw 0.6s ease-out forwards;
+}

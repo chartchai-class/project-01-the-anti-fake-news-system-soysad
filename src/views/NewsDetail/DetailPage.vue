@@ -6,7 +6,6 @@ import CommentList from '@/components/newsDetails/CommentList.vue'
 import { majorityLabel, fakePercent } from '@/utils/vote'
 
 const props = defineProps<{ item: NewsItem }>()
-
 const newsId = computed(() => Number(props.item.id))
 
 const commentsStore = useCommentsStore()
@@ -42,29 +41,15 @@ const verdictBadgeClass = computed(() => {
   if (verdict.value === 'Fake') return `${base} bg-amber-500 text-white ring-amber-700/60`
   return `${base} bg-zinc-100 text-zinc-500 ring-zinc-300`
 })
-
-type Side = 'real' | 'fake'
-const winner = computed<Side | 'tie'>(() => {
-  if (realPct.value > fakePct.value) return 'real'
-  if (fakePct.value > realPct.value) return 'fake'
-  return 'tie'
-})
-function chipClass(side: Side) {
-  const activeReal = 'bg-emerald-600 text-white ring-emerald-700/60 shadow-sm'
-  const activeFake = 'bg-amber-500 text-zinc-900 ring-amber-700/40 shadow-sm'
-  const inactive = 'bg-zinc-100 text-zinc-700 ring-zinc-200'
-  if (winner.value === 'tie') return inactive
-  if (side === 'real') return winner.value === 'real' ? activeReal : inactive
-  return winner.value === 'fake' ? activeFake : inactive
-}
 </script>
 
 <template>
-  <div class="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-12 py-10">
+  <div class="mx-auto max-w-[1400px] px-5 sm:px-6 lg:px-10 py-6">
     <article
       class="relative bg-white/70 backdrop-blur rounded-[28px] ring-1 ring-black/5 shadow-sm overflow-hidden divide-y divide-zinc-100"
     >
-      <section class="px-8 lg:px-12 pt-10 pb-8">
+      <!-- Header -->
+      <section class="px-6 lg:px-10 pt-8 pb-6">
         <header>
           <h1
             class="text-[clamp(34px,4.4vw,64px)] leading-tight font-extrabold tracking-tight text-zinc-900"
@@ -79,6 +64,7 @@ function chipClass(side: Side) {
               formatFullDateTime(props.item.dateTime)
             }}</time>
 
+            <!-- badge เมื่อไม่มีรูป (ใส่ไอคอนแล้ว) -->
             <span v-if="!props.item.imageUrl" :class="['ml-auto', verdictBadgeClass]" role="status">
               <svg
                 v-if="hasVotes && verdict === 'Real'"
@@ -123,6 +109,7 @@ function chipClass(side: Side) {
           >
             <img :src="props.item.imageUrl" alt="" class="w-full object-cover" />
             <div class="absolute top-3 right-3 md:top-4 md:right-4 z-10">
+              <!-- badge บนรูป (ใส่ไอคอนแล้ว) -->
               <span :class="verdictBadgeClass" role="status">
                 <svg
                   v-if="hasVotes && verdict === 'Real'"
@@ -165,7 +152,8 @@ function chipClass(side: Side) {
         </figure>
       </section>
 
-      <section class="px-8 lg:px-12 py-8">
+      <!-- Body -->
+      <section class="px-6 lg:px-10 py-6">
         <div class="mx-auto max-w-4xl xl:max-w-5xl">
           <p class="text-[17px] md:text-xl text-zinc-700 leading-relaxed">
             {{ props.item.shortDetail }}
@@ -177,20 +165,19 @@ function chipClass(side: Side) {
         </div>
       </section>
 
-      <section class="px-8 lg:px-12 py-8">
+      <!-- Stats + CTA -->
+      <section class="px-6 lg:px-10 py-6">
         <div class="mx-auto max-w-4xl xl:max-w-5xl">
           <div class="mb-3 grid grid-cols-2 select-none">
             <span
-              class="justify-self-start inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-sm md:text-base font-semibold ring-1"
-              :class="chipClass('real')"
+              class="justify-self-start inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-sm md:text-base font-semibold ring-1 bg-zinc-100 text-zinc-700 ring-zinc-200"
             >
-              Real <span class="opacity-90">· {{ Math.round(realPct) }}%</span>
+              Real · {{ Math.round(realPct) }}%
             </span>
             <span
-              class="justify-self-end inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-sm md:text-base font-semibold ring-1"
-              :class="chipClass('fake')"
+              class="justify-self-end inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-sm md:text-base font-semibold ring-1 bg-zinc-100 text-zinc-700 ring-zinc-200"
             >
-              Fake <span class="opacity-90">· {{ Math.round(fakePct) }}%</span>
+              Fake · {{ Math.round(fakePct) }}%
             </span>
           </div>
 
@@ -208,12 +195,13 @@ function chipClass(side: Side) {
             <span class="font-medium">Fake: {{ Math.round(fakePct) }}% ({{ fakeVotes }})</span>
           </div>
 
-          <div class="mt-8 flex justify-center">
+          <!-- Vote now ใต้หลอดสถานะ -->
+          <div class="mt-6 flex justify-center">
             <router-link
               :to="{ name: 'details-vote', params: { id: newsId } }"
-              class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-amber-500 px-5 py-3 md:px-6 md:py-3.5 text-sm md:text-base font-medium text-white ring-1 ring-white/20 shadow-lg hover:opacity-95 hover:shadow-xl active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 transition"
+              class="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 md:px-6 md:py-3 bg-emerald-600 text-white ring-1 ring-emerald-700/50 shadow hover:opacity-95 transition"
             >
-              Vote & Comment
+              Vote now →
             </router-link>
           </div>
         </div>
